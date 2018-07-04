@@ -1,0 +1,82 @@
+@import "default"
+@import "mixins"
+@import "variable"
+
+*, *:before, *:after
+  box-sizing: border-box
+
+body
+  padding: 0
+  margin: 0
+  background: #fafafa
+
+.app-bar-wrapper
+  position: fixed !important
+  top: 0
+  left: 0
+  right: 0
+  background-color: $primary-color-dark !important
+
+.below-header-container
+  margin-top: 64px
+
+.main-container
+  position: fixed
+  top: 64px
+  right: 0
+  bottom: 0
+  left: 240px
+  overflow: auto
+
+.center-main-box
+  padding: 0 10px 10px
+
+.page-title
+  background-color: #ffffff
+  color: $primary-color
+  margin: 0 0 30px
+  padding: 15px 20px
+  line-height: 30px
+  font-size: 21px
+  +box-shadow(1px 0 5px rgba(0, 0, 0, 0.1))
+
+/* Panel Card */
+.panel-card
+  padding: 20px
+  margin: 10px 0
+  background-color: #ffffff
+  +border-radius(5px)
+  +box-shadow(0 5px 20px rgba(0, 0, 0, 0.05))
+  +transition(all .3s linear)
+  img
+    width: 70px
+    height: 70px
+    +border-radius(50%)
+  .panel-title
+    margin-top: 10px
+  &:hover
+    +box-shadow(0 14px 26px -12px rgba(0, 0, 0, 0.05), 0 4px 23px 0 rgba(0, 0, 0, 0.05), 0 8px 10px -5px rgba(0, 0, 0, 0.05))
+
+/* Standard Card */
+.standard-card
+  padding: 20px
+  margin: 15px 0
+  background-color: #ffffff
+  +border-radius(5px)
+  +box-shadow(0 5px 20px rgba(0, 0, 0, 0.05))
+  +transition(all .3s linear)
+  .card-title
+    font:
+      weight: 500
+      size: 18px
+    line-height: 22px
+    margin-bottom: .75em
+    color: $primary-text
+  .card-subtitle
+    color: #999999
+    font-size: 12px
+    margin-bottom: 10px
+
+.fixed-width-card
+  max-width: 500px
+  margin: 0 auto

@@ -1,0 +1,28 @@
+@import "mixins"
+@import "variable"
+
+.left-sidebar
+  top: 64px !important
+  width: 240px !important
+  +box-shadow(1px 0 20px rgba(0, 0, 0, 0.08) !important)
+
+.sidebar-items
+  font:
+    size: 14px !important
+    weight: 400 !important
+  color: #607d8b !important
+  +transition(all .3s linear)
+  .item-icon-box, .item-icon-box svg, button, button svg
+    width: 20px !important
+    height: 20px !important
+  .item-icon-box, button
+    margin: 8px 12px !important
+    svg
+      color: #607d8b !important
+  button
+    padding: 3px 0 !important
+  &:hover
+    color: $primary-color !important
+    .item-icon-box, button
+      svg
+        color: $primary-color !important

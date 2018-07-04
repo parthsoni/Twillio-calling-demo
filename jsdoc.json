@@ -1,0 +1,22 @@
+{
+  "templates": {
+    "default": {
+      "outputSourceFiles": false
+    }
+  },
+  "opts": {
+    "template": "docdash-modified"
+  },
+
+  "docdash": {
+    "static": true,  // Display the static members inside the navbar
+    "sort": false,     // Sort the methods in the navbar
+    "includeDate": false
+  },
+
+  "source": {
+    "include": ["app/components/service/src/" /* array of paths to files to generate documentation for */ ],
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": ".+\\http.js(doc|x)?$"
+  }
+}
