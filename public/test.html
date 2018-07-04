@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <!--
+      manifest.json provides metadata used when your web app is added to the
+      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
+    -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <link href="https://widgets.favcy.com/js/favcy-bot/v3.2.18//favcy-widgets/static/css/widgets-bundle.css"
+          rel="stylesheet">
+
+
+
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root"></div>
+    <div id="favcy-app">
+    </div>
+    <div id="login-container"></div>
+    <div id="logout"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+    <div id="controls">
+      <div id="info">
+        <p class="instructions">Your are LoggedIn as </p>
+        <img src='' id='profile_img' />
+        <div id="client-name"></div>
+        <div id="points"></div>
+      </div>
+      <div id="call-controls">
+        <p class="instructions">Make a Call:</p>
+        <input id="phone-number" data-value="" type="text" placeholder="Enter a phone # or client name"/>
+        <button id="button-call">Call</button>
+        <button id="button-hangup">Hangup</button>
+        <div id="call_progress"></div>
+      </div>
+      <div id="log"></div>
+    </div>
+    <br>
+    <div>
+      <select id="online-users">
+      </select>
+      <br>
+      <button onClick="getOnlineUsers()">Refresh</button>
+    </div>
+    <br>
+    <br>
+    <div id="call_history"></div>
+  </body>
+</html>
+<script src="https://widgets-staging.favcy.com/js/favcy-bot/v3.2.30//favcy-widgets/static/js/widgets-bundle.js"></script>
+<script type="text/javascript" src="js/valuex-bundle.js?e53d06b39cc8ab90c08f"></script></body>
+<script>
+    var favcy_token;
+    var app_id = "A9FKZEJCMKADFGZ";
+
+    var sdk = ValuexSDK.getInstance();
+    /* Initialize SDK */
+    sdk.init({
+        app_id: app_id,
+        favcyApp: window.FavcyApp,
+        style : {
+            primaryColor : 'red',
+            secondaryColor : 'blue'
+        }
+    }).then(function(response){
+        console.log(response);
+
+        /* add login button */
+        sdk.getApplication().addLoginButton("login-container", function(response){
+        }, {});
+
+        sdk.getApplication().addLogoutButton("logout", function(response){
+        }, {});
+
+    }).catch(function(error){
+        log(error);
+    })
+
+    /* Subscribe events for login, connect, device ready, on incoming call */
+    var callTime;
+    sdk.subscribeEvents('onConnect', function(eventName, eventData){
+        // Do Something here like notify User
+        log("Received event " + eventName);
+        document.getElementById('button-call').style.display = 'none';
+        document.getElementById('button-hangup').style.display = 'inline';
+
+        callTime = setInterval(function(){
+            $("#call_progress").html("Call Time " + sdk.getCallTime());
+            var user =sdk.getUser();
+            $("#points").html(user.brand_points +" points");
+            $("#profile_img").attr("src", user.profile_pic);
+        }, 1000);
+
+    });
+
+    sdk.subscribeEvents('onDisConnect', function(eventName, eventData){
+        // Do Something here like notify User
+        log("Received event " + eventName);
+        document.getElementById('button-call').style.display = 'inline';
+        document.getElementById('button-hangup').style.display = 'none';
+
+        clearInterval(callTime);
+    });
+
+    sdk.subscribeEvents('onReady', function(eventName, eventData){
+        // Do Something here like notify User
+        log("Received event " + eventName);
+        document.getElementById('call-controls').style.display = 'block';
+    });
+
+    sdk.subscribeEvents('onError', function(eventName, eventData){
+        // Do Something here like notify User
+        log("Received event " + eventName);
+        log(eventData);
+    });
+
+    sdk.subscribeEvents('onLogin', function(eventName, eventData){
+        log("Received event " + eventName);
+        // fetch user detail along with user's favcy info from favcy token
+        favcy_token=eventData;
+        sdk.setToken(favcy_token);
+        sdk.getUserDetail().then(function(response){
+            log(response);
+            setClientNameUI(response.name);
+            // fetch provider token with calling and receiving in coming call capability
+            sdk.generateToken();
+
+            // get list of online users
+            getOnlineUsers();
+            sdk.getCalls().then(function(response) {
+                var table_data = "<table border='2'><tr><th>Call Id</th> <th>Receiver</th> <th>Time</th> <th>Credit Spent</th><th>Credit received</th><th>Final Status</th></tr>";
+
+                if(undefined!==response.data.data) {
+                    jQuery.each(response.data.data, function (i, val) {
+                        table_data +=
+                            "<tr>" + "<td>" + val.call.call_record_id + "</td>" + "<td>" + val.user.name + "</td>" + "<td>" + val.call.call_time + "</td>" + "<td>" + val.call.credit_spent + "</td>" + "<td>" + "--" + "</td>" + "<td>" + val.call.call_status + "</td>";
+                    });
+                    $("#call_history").html(table_data + "</table>");
+                }else {
+                    $("#call_history").html(table_data + "<tr><td colspan='7'>No call history found</td></tr></table>");
+                }
+
+            });
+        }).catch(function(error){
+            log(error);
+        });
+    });
+
+    sdk.subscribeEvents('onLogout', function(eventName, eventData){
+        log("onLogout");
+    });
+
+
+    $(function () {
+
+        $("#online-users").change(function () {
+            $("#phone-number").attr("data-value", $(this).find(":selected").attr("data-user-id"));
+            $("#phone-number").val($(this).find(":selected").text());
+        });
+
+        log('Login to start');
+
+
+        // Bind button to make call
+        document.getElementById('button-call').onclick = function () {
+            // get the phone number to connect the call to
+            var receiverID = $('#phone-number').attr("data-value");
+            var params = {
+                To: receiverID,
+            };
+
+            log('Calling ' + params.To + '...');
+            sdk.connect(params);
+        };
+
+        // Bind button to hangup call
+        document.getElementById('button-hangup').onclick = function () {
+            log('Hanging up...');
+            sdk.disconnectAll();
+        };
+
+    });
+
+    // Activity log
+    function log(message) {
+        console.log(message)
+        var logDiv = document.getElementById('log');
+        logDiv.innerHTML += '<p>' + message + '</p>';
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Set the client name in the UI
+    function setClientNameUI(name) {
+        var div = document.getElementById('client-name');
+        div.innerHTML = '<strong>' + name +
+            '</strong>';
+    }
+
+    sdk.subscribeEvents('incoming', function(eventName, eventData){
+        // handle incoming call
+
+    });
+
+    function getOnlineUsers()
+    {
+        sdk.getOnlineUsers().then(function(response) {
+
+            $("#online-users").html("<option value='' disabled selected>Online User</option>");
+            response.data.data.forEach(function (item) {
+                $("#online-users").append("<option data-user-id=" + item.user_id + " value=" + item.token + ">" + item
+                    .name + "</option>");
+            })
+        }).catch(function(error){
+            console.log(error);
+            log(error.error);
+        });
+    }
+
+
+</script>
+
