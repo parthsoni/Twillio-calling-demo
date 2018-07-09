@@ -120,7 +120,6 @@
     "webrtc.io": "0.0.4"
   },
   "devDependencies": {
-    "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "jsdoc": "^3.5.5",
     "jsdoc-test": "0.0.4",
     "jsdoctest": "^1.7.1",
